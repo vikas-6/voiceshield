@@ -32,10 +32,14 @@ dist
 
 # Environment files (comprehensive coverage)
 .env
-.env.*
-*.env
+.env.local
+.env.*.local
+.env.development
+.env.production
 **/.env
-**/**.env
+# But allow example files
+!.env.example
+!**/.env.example
 
 # Logs and debug files
 npm-debug.log*

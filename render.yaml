@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: voice-shield-backend
+    env: python
+    region: oregon
+    plan: free
+    branch: main
+    buildCommand: cd backend && pip install -r requirements.txt
+    startCommand: cd backend && uvicorn server:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: MONGO_URL
+        sync: false
+      - key: DB_NAME
+        value: voice_assistant_db
+      - key: ELEVENLABS_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: CORS_ORIGINS
+        value: "*"

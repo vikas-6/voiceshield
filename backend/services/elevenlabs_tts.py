@@ -9,6 +9,14 @@ logger = logging.getLogger(__name__)
 # ElevenLabs API configuration
 ELEVENLABS_API_KEY = os.environ.get("ELEVENLABS_API_KEY", "")
 
+# Validate API key is present
+if not ELEVENLABS_API_KEY:
+    logger.error("ELEVENLABS_API_KEY environment variable is not set")
+    raise ValueError(
+        "ELEVENLABS_API_KEY is required. Please add it to your backend/.env file:\n"
+        "ELEVENLABS_API_KEY=your_key_here"
+    )
+
 def elevenlabs_tts(text: str, voice_id: str = "JBFqnCBsd6RMkjVDRZzb", 
                   model_id: str = "eleven_multilingual_v2", 
                   output_format: str = "mp3_44100_128") -> Optional[Iterator[bytes]]:

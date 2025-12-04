@@ -1,43 +1,94 @@
-from fastapi import FastAPI, APIRouter, WebSocket, WebSocketDisconnect
 from dotenv import load_dotenv
+from pathlib import Path
+import os
+
+# CRITICAL: Load .env BEFORE importing any services that use environment variables
+ROOT_DIR = Path(__file__).parent
+load_dotenv(ROOT_DIR / '.env')
+
+from fastapi import FastAPI, APIRouter, WebSocket, WebSocketDisconnect
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
-import os
 import logging
-from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict
 from typing import List
+from contextlib import asynccontextmanager
 import uuid
 from datetime import datetime, timezone
 
-# Import voice routes and WebSocket manager
+# Import voice routes and WebSocket manager AFTER loading .env
 from routes.voice import router as voice_router
 from websocket.ws_manager import manager
 from services.event_store import event_store
 
-ROOT_DIR = Path(__file__).parent
-load_dotenv(ROOT_DIR / '.env')
+# Configure logging first
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
-# MongoDB connection - get from environment with proper error handling
-mongo_url = os.environ.get('MONGO_URL')
-db_name = os.environ.get('DB_NAME', 'voice_assistant_db')
+# Validate required environment variables
+def validate_environment():
+    """Validate that all required environment variables are set"""
+    required_vars = {
+        'MONGO_URL': 'MongoDB connection URL',
+        'DB_NAME': 'Database name',
+        'ELEVENLABS_API_KEY': 'ElevenLabs API key for voice processing',
+        'GEMINI_API_KEY': 'Google Gemini API key for response generation'
+    }
+    
+    missing_vars = []
+    for var, description in required_vars.items():
+        if not os.environ.get(var):
+            missing_vars.append(f"  - {var}: {description}")
+    
+    if missing_vars:
+        error_msg = "Missing required environment variables:\n" + "\n".join(missing_vars)
+        error_msg += "\n\nPlease add these to your backend/.env file"
+        logger.error(error_msg)
+        raise ValueError(error_msg)
+    
+    logger.info("All required environment variables are set")
 
-if not mongo_url:
-    raise ValueError("MONGO_URL environment variable is required. Set it in Render Dashboard > Environment.")
+# MongoDB connection (will be initialized in lifespan)
+client = None
+db = None
 
-client = AsyncIOMotorClient(mongo_url)
-db = client[db_name]
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Lifespan context manager for startup and shutdown events"""
+    global client, db
+    
+    # Startup
+    logger.info("Starting Voice Emergency Assistant Backend...")
+    
+    # Validate environment variables
+    validate_environment()
+    
+    # Initialize MongoDB connection
+    mongo_url = os.environ['MONGO_URL']
+    client = AsyncIOMotorClient(mongo_url)
+    db = client[os.environ['DB_NAME']]
+    
+    # Set the database connection for the event store
+    event_store.set_db(db)
+    
+    logger.info("Voice Emergency Assistant Backend started successfully")
+    
+    yield
+    
+    # Shutdown
+    if client:
+        client.close()
+        logger.info("Voice Emergency Assistant Backend shutdown")
 
-# Set the database connection for the event store
-event_store.set_db(db)
-
-# Create the main app without a prefix
-app = FastAPI(title="Voice Emergency Assistant", description="Real-Time Voice Emergency Detection System")
-
-# Root health check for Render
-@app.get("/")
-async def health_check():
-    return {"status": "healthy", "service": "Voice Emergency Assistant"}
+# Create the main app with lifespan
+app = FastAPI(
+    title="Voice Emergency Assistant", 
+    description="Real-Time Voice Emergency Detection System",
+    lifespan=lifespan
+)
 
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
@@ -109,19 +160,3 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
-
-@app.on_event("startup")
-async def startup_event():
-    logger.info("Voice Emergency Assistant Backend started successfully")
-
-@app.on_event("shutdown")
-async def shutdown_db_client():
-    client.close()
-    logger.info("Voice Emergency Assistant Backend shutdown")

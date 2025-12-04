@@ -13,6 +13,14 @@ logger = logging.getLogger(__name__)
 ELEVENLABS_API_KEY = os.environ.get("ELEVENLABS_API_KEY", "")
 ELEVENLABS_API_URL = "https://api.elevenlabs.io/v1"
 
+# Validate API key is present
+if not ELEVENLABS_API_KEY:
+    logger.error("ELEVENLABS_API_KEY environment variable is not set")
+    raise ValueError(
+        "ELEVENLABS_API_KEY is required. Please add it to your backend/.env file:\n"
+        "ELEVENLABS_API_KEY=your_key_here"
+    )
+
 def get_scribe_token() -> Optional[str]:
     """Get a single-use token for ElevenLabs Scribe v2 Realtime
     
@@ -74,8 +82,7 @@ def elevenlabs_stt(audio_data: bytes) -> str:
             f"{ELEVENLABS_API_URL}/speech-to-text",
             headers=headers,
             files=files,
-            data=data,
-            timeout=30  # 30 second timeout to prevent hanging
+            data=data
         )
         
         # Check if request was successful
