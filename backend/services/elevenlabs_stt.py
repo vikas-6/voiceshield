@@ -4,6 +4,7 @@ import requests
 import base64
 import os
 import json
+import hashlib
 from typing import Optional
 
 logger = logging.getLogger(__name__)
@@ -43,7 +44,7 @@ def get_scribe_token() -> Optional[str]:
         return None
 
 def elevenlabs_stt(audio_data: bytes) -> str:
-    """Convert speech to text using ElevenLabs API with fallback to mock STT
+    """Convert speech to text using ElevenLabs API (no fallback)
     
     Args:
         audio_data: Audio file data
@@ -52,35 +53,28 @@ def elevenlabs_stt(audio_data: bytes) -> str:
         str: Transcribed text
     """
     try:
-        # First try to get a token for realtime transcription
-        token = get_scribe_token()
-        if not token:
-            logger.warning("Failed to get Scribe token, falling back to mock STT")
-            return mock_stt_fallback(audio_data)
-        
         # Try the HTTP API with correct parameters
         headers = {
-            "xi-api-key": ELEVENLABS_API_KEY,
-            "Content-Type": "audio/webm"
+            "xi-api-key": ELEVENLABS_API_KEY
         }
         
-        # Send model_id in the body as JSON
-        data = {
-            "model_id": "eleven_multilingual_v2"
-        }
-        
+        # Send audio data with the correct model
+        # Send as form data with proper field names
         files = {
-            'audio': ('audio.webm', audio_data, 'audio/webm')
+            'file': ('audio.webm', audio_data, 'audio/webm')
+        }
+        data = {
+            'model_id': 'scribe_v2'
         }
         
         logger.info(f"Sending audio data to ElevenLabs STT API (size: {len(audio_data)} bytes)")
         
-        # Make API request with model_id in form data
+        # Make API request with files and data
         response = requests.post(
             f"{ELEVENLABS_API_URL}/speech-to-text",
             headers=headers,
-            data=data,
-            files=files
+            files=files,
+            data=data
         )
         
         # Check if request was successful
@@ -90,44 +84,11 @@ def elevenlabs_stt(audio_data: bytes) -> str:
             logger.info(f"ElevenLabs STT successful: {transcript[:50]}...")
             return transcript
         else:
-            logger.warning(f"ElevenLabs STT failed with status {response.status_code}: {response.text}")
-            # Fallback to mock STT
-            return mock_stt_fallback(audio_data)
+            logger.error(f"ElevenLabs STT failed with status {response.status_code}: {response.text}")
+            raise Exception(f"ElevenLabs STT failed: {response.status_code} - {response.text}")
             
     except Exception as e:
         logger.error(f"Error in ElevenLabs STT: {e}", exc_info=True)
-        # Fallback to mock STT
-        return mock_stt_fallback(audio_data)
+        raise Exception(f"Error in ElevenLabs STT: {str(e)}")
 
-def mock_stt_fallback(audio_data) -> str:
-    """Fallback mock STT implementation
-    
-    Args:
-        audio_data: Audio file data (currently unused in mock)
-    
-    Returns:
-        str: Simulated transcript
-    """
-    if not audio_data or len(audio_data) < 100:
-        logger.info("Mock STT: Empty or too short audio detected")
-        return "I couldn't hear anything clearly."
-    
-    # Simulate various emergency scenarios for demo
-    mock_transcripts = [
-        "There's a fire in the building, we need help immediately!",
-        "Someone is hurt badly, there's blood everywhere!",
-        "I'm being attacked, please send help to my location!",
-        "There was a car crash at the intersection, multiple vehicles involved!",
-        "Everything is fine, just testing the system.",
-        "Help! The kitchen is on fire and smoke is spreading!",
-        "Medical emergency, person not breathing properly!",
-        "Danger! Someone has a weapon!",
-        "Accident on highway, people are injured!"
-    ]
-    
-    # Use audio data length to pseudo-randomly select a transcript
-    index = len(audio_data) % len(mock_transcripts)
-    transcript = mock_transcripts[index]
-    
-    logger.info(f"Mock STT fallback generated transcript: {transcript[:50]}...")
-    return transcript
+# Mock STT fallback removed - using only ElevenLabs API for real processing

@@ -1,11 +1,14 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Separator } from './ui/separator';
 import StatusBadge from './StatusBadge';
-import { Clock, MessageSquare, AlertCircle } from 'lucide-react';
+import { Clock, MessageSquare, AlertCircle, Play, Pause, Volume2 } from 'lucide-react';
 import { format } from 'date-fns';
 
 const EmergencyCard = ({ event }) => {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef(null);
+
   if (!event) {
     return (
       <Card className="w-full" data-testid="emergency-card-empty">
@@ -18,6 +21,43 @@ const EmergencyCard = ({ event }) => {
       </Card>
     );
   }
+
+  const playAssistantResponse = async () => {
+    try {
+      setIsPlaying(true);
+      
+      // Fetch audio from backend
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
+      const audioUrl = `${backendUrl}/api/audio/${event.id}`;
+      
+      const response = await fetch(audioUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch audio: ${response.status}`);
+      }
+      
+      const audioBlob = await response.blob();
+      const audioUrlObject = URL.createObjectURL(audioBlob);
+      
+      // Play audio
+      const audio = new Audio(audioUrlObject);
+      audio.play();
+      
+      audio.onended = () => {
+        setIsPlaying(false);
+        URL.revokeObjectURL(audioUrlObject);
+      };
+      
+      audio.onerror = (error) => {
+        console.error('Error playing audio:', error);
+        setIsPlaying(false);
+        URL.revokeObjectURL(audioUrlObject);
+      };
+      
+    } catch (error) {
+      console.error('Error playing audio:', error);
+      setIsPlaying(false);
+    }
+  };
 
   return (
     <Card className="w-full shadow-md" data-testid="emergency-card">
@@ -55,7 +95,7 @@ const EmergencyCard = ({ event }) => {
 
         <Separator />
 
-        {/* Assistant Reply */}
+        {/* Assistant Reply with Audio Playback */}
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <AlertCircle className="h-5 w-5 text-sky-600" />
@@ -65,7 +105,30 @@ const EmergencyCard = ({ event }) => {
             className="bg-sky-50 rounded-lg p-4 border border-sky-200"
             data-testid="assistant-reply"
           >
-            <p className="text-slate-700 leading-relaxed">{event.assistant_reply}</p>
+            <p className="text-slate-700 leading-relaxed mb-4">{event.assistant_reply}</p>
+            
+            {/* Audio Playback Controls */}
+            <div className="flex items-center gap-3 mt-4 pt-3 border-t border-sky-100">
+              <button
+                onClick={playAssistantResponse}
+                disabled={isPlaying}
+                className="flex items-center gap-2 bg-sky-600 hover:bg-sky-700 disabled:bg-sky-400 text-white px-4 py-2 rounded-lg transition-colors"
+              >
+                {isPlaying ? (
+                  <>
+                    <Pause className="h-4 w-4" />
+                    <span>Playing...</span>
+                  </>
+                ) : (
+                  <>
+                    <Play className="h-4 w-4" />
+                    <span>Listen to Response</span>
+                  </>
+                )}
+              </button>
+              <Volume2 className="h-5 w-5 text-sky-600" />
+              <span className="text-sm text-slate-600">AI Generated Audio</span>
+            </div>
           </div>
         </div>
       </CardContent>

@@ -1,402 +1,156 @@
-# 🎙️ VoiceShield AI - Real-Time Voice Emergency Assistant
+# Voice Emergency Assistant
 
-## Overview
+A real-time voice emergency detection system that uses advanced voice processing to identify emergency situations and provide appropriate responses.
 
-VoiceShield AI is a full-stack voice emergency detection system that processes voice recordings, classifies emergency types, and provides real-time assistant responses. The application uses WebSocket for live event streaming and is currently built with **mock functions** for easy integration with external APIs.
+## Features
 
-### Current Status: Mock Version
+- Real-time voice recording and processing
+- Emergency classification based on keywords (Fire, Medical, Violence, Accident)
+- Text-to-speech response generation using ElevenLabs
+- Persistent event storage with MongoDB
+- Real-time event feed via WebSocket
+- Responsive web interface built with React
 
-**Mock Functions** (Ready for Integration):
-- ✅ Mock Speech-to-Text (STT) - Ready for **ElevenLabs STT** integration
-- ✅ Mock Emergency Classifier - Ready for **Google Gemini API** integration
-- ✅ In-memory Event Store - Ready for **Firestore** integration
+## Prerequisites
 
-**Fully Functional**:
-- ✅ WebSocket real-time event broadcasting
-- ✅ Web Audio API microphone recording
-- ✅ Professional/Medical UI design
-- ✅ Emergency classification (5 types: FIRE, MEDICAL, VIOLENCE, ACCIDENT, NORMAL)
-- ✅ Severity scoring (1-10)
+- Python 3.8+
+- Node.js 14+
+- MongoDB Atlas account
+- ElevenLabs API key
 
----
-
-## 🛠️ Tech Stack
-
-### Backend
-- **FastAPI** (Python) - REST API and WebSocket server
-- **Motor** - Async MongoDB driver
-- **Websockets** - Real-time event broadcasting
-- **Pydantic** - Data validation
-
-### Frontend
-- **React** - UI framework
-- **Vite** - Build tool
-- **TailwindCSS** - Styling
-- **Shadcn/UI** - Component library
-- **Web Audio API** - Microphone recording
-- **Axios** - HTTP client
-- **WebSocket** - Real-time event streaming
-- **date-fns** - Date formatting
-- **Sonner** - Toast notifications
-
----
-
-## 📁 Folder Structure
-
-```
-/app/
-├── backend/
-│   ├── server.py                 # Main FastAPI application
-│   ├── requirements.txt          # Python dependencies
-│   ├── .env                      # Environment variables
-│   ├── services/
-│   │   ├── mock_stt.py          # Mock Speech-to-Text (TODO: ElevenLabs)
-│   │   ├── mock_classifier.py   # Mock Classifier (TODO: Gemini)
-│   │   └── event_store.py       # In-memory event storage (TODO: Firestore)
-│   ├── routes/
-│   │   └── voice.py             # Voice processing endpoints
-│   └── websocket/
-│       └── ws_manager.py        # WebSocket connection manager
-│
-├── frontend/
-│   ├── package.json             # Node dependencies
-│   ├── .env                     # Environment variables
-│   ├── public/                  # Static assets
-│   └── src/
-│       ├── App.js               # Main app component
-│       ├── App.css              # Global styles
-│       ├── index.css            # Tailwind imports
-│       ├── pages/
-│       │   └── Home.jsx         # Main home page
-│       ├── components/
-│       │   ├── MicRecorder.jsx  # Audio recording component
-│       │   ├── EmergencyCard.jsx # Event display card
-│       │   ├── EventFeed.jsx    # Real-time event feed
-│       │   ├── StatusBadge.jsx  # Emergency type badge
-│       │   └── ui/              # Shadcn components
-│       └── services/
-│           └── api.js           # API service
-│
-└── README.md                     # This file
-```
-
----
-
-## 🚀 How to Run
-
-### Prerequisites
-- Python 3.11+
-- Node.js 18+
-- MongoDB (running locally or remote)
-- Yarn package manager
+## Installation
 
 ### Backend Setup
 
-1. **Navigate to backend directory**:
+1. Navigate to the backend directory:
    ```bash
-   cd /app/backend
+   cd backend
    ```
 
-2. **Install dependencies**:
+2. Install Python dependencies:
    ```bash
    pip install -r requirements.txt
    ```
 
-3. **Configure environment**:
-   The `.env` file should already be configured:
-   ```env
-   MONGO_URL="mongodb://localhost:27017"
-   DB_NAME="test_database"
+3. Configure environment variables in `.env`:
+   ```
+   MONGO_URL="your_mongodb_connection_string"
+   DB_NAME="voice_assistant_db"
    CORS_ORIGINS="*"
    ```
 
-4. **Start the backend**:
+4. Start the backend server:
    ```bash
    uvicorn server:app --host 0.0.0.0 --port 8000 --reload
    ```
 
-5. **Check backend logs**:
-   ```bash
-   tail -f backend.log
-   ```
-
 ### Frontend Setup
 
-1. **Navigate to frontend directory**:
+1. Navigate to the frontend directory:
    ```bash
-   cd /app/frontend
+   cd frontend
    ```
 
-2. **Install dependencies** (if needed):
+2. Install Node dependencies:
    ```bash
    yarn install
    ```
 
-3. **Configure environment**:
-   The `.env` file should already be configured:
-   ```env
+3. Configure environment variables in `.env`:
+   ```
    REACT_APP_BACKEND_URL=http://localhost:8000
    ```
 
-4. **Start the frontend**:
+4. Start the development server:
    ```bash
    yarn start
    ```
 
-5. **Access the application**:
-   Open your browser and navigate to:
-   ```
-   http://localhost:3000
-   ```
+## Production Deployment
 
----
-
-## 🧪 How to Test
-
-### Test Recording Flow
-
-1. **Open the application** in your browser
-2. **Allow microphone permissions** when prompted
-3. **Click the microphone button** to start recording
-4. **Speak into your microphone** (the mock will simulate different scenarios)
-5. **Click the button again** to stop recording
-6. **View results**:
-   - Transcript appears in the Emergency Card
-   - Emergency type and severity are displayed
-   - AI assistant response is shown
-   - Event appears in the real-time feed
-
-### Test WebSocket Connection
-
-1. **Check the status indicator** in the header (green = connected, red = disconnected)
-2. **Open multiple browser tabs** with the application
-3. **Record in one tab** and watch events appear in all tabs in real-time
-
-### Test API Endpoints
-
-**Test voice processing**:
+Run the deployment script:
 ```bash
-# Create a test audio file
-echo "test audio data" > test_audio.webm
-
-# Send to API
-curl -X POST http://localhost:8000/api/voice \
-  -F "audio=@test_audio.webm" \
-  -H "Content-Type: multipart/form-data"
+./deploy.sh
 ```
 
-**Get recent events**:
-```bash
-curl http://localhost:8000/api/events
+This will:
+- Install all dependencies
+- Build production versions of both frontend and backend
+- Start both services in the background
+- Log output to the `logs/` directory
+
+## Usage
+
+1. Open your browser and navigate to `http://localhost:3000`
+2. Click the microphone button to start recording
+3. Speak an emergency phrase (e.g., "There's a fire in the building")
+4. View the classified emergency and AI response
+5. Monitor real-time events in the event feed
+
+## API Endpoints
+
+### Voice Processing
+- `POST /api/voice` - Process voice recording
+  - Form data: `audio` (webm audio file)
+  - Returns: Emergency event object
+
+### Events
+- `GET /api/events` - Get recent emergency events
+  - Query param: `limit` (default: 50)
+  - Returns: List of events
+
+### Status
+- `GET /api/status` - Get system status checks
+- `POST /api/status` - Create new status check
+
+### WebSocket
+- `WS /ws` - Real-time event streaming
+
+## Architecture
+
+```
+┌─────────────┐    HTTP    ┌──────────────┐
+│   React     │ ──────────▶│   FastAPI    │
+│  Frontend   │            │   Backend    │
+└─────────────┘            └──────────────┘
+                                │
+                           ┌────▼────┐
+                           │ MongoDB │
+                           │   Atlas │
+                           └─────────┘
 ```
 
-### Test WebSocket Directly
+## Services
 
-Using a WebSocket client or browser console:
-```javascript
-const ws = new WebSocket('ws://localhost:8000/ws');
-ws.onmessage = (event) => console.log('Received:', event.data);
-ws.onopen = () => console.log('Connected');
+- **ElevenLabs STT**: Speech-to-text conversion with fallback to mock STT
+- **Keyword Classifier**: Classifies emergencies based on transcript keywords
+- **ElevenLabs TTS**: Text-to-speech response generation
+- **MongoDB Event Store**: Persistent storage of emergency events
+- **WebSocket Manager**: Real-time event broadcasting
+
+## Development
+
+### Backend Structure
+```
+backend/
+├── routes/          # API route handlers
+├── services/        # Business logic and external services
+├── websocket/       # WebSocket connection management
+├── server.py        # Main application entry point
+└── requirements.txt # Python dependencies
 ```
 
----
-
-## 📊 API Endpoints
-
-### REST Endpoints
-
-#### `POST /api/voice`
-Process voice recording and classify emergency.
-
-**Request**:
-- Content-Type: `multipart/form-data`
-- Body: `audio` (audio file)
-
-**Response**:
-```json
-{
-  "id": "uuid",
-  "transcript": "string",
-  "type": "FIRE | MEDICAL | VIOLENCE | ACCIDENT | NORMAL",
-  "severity": 1-10,
-  "assistant_reply": "string",
-  "timestamp": "ISO datetime"
-}
+### Frontend Structure
+```
+frontend/
+├── src/
+│   ├── components/  # React UI components
+│   ├── pages/       # Page components
+│   ├── services/    # API service clients
+│   └── App.js       # Main application component
+└── package.json     # Node dependencies
 ```
 
-#### `GET /api/events`
-Get recent emergency events.
+## License
 
-**Query Parameters**:
-- `limit` (optional): Maximum events to return (default: 50)
-
-**Response**:
-```json
-{
-  "events": [
-    {
-      "id": "uuid",
-      "transcript": "string",
-      "type": "string",
-      "severity": 1-10,
-      "assistant_reply": "string",
-      "timestamp": "ISO datetime"
-    }
-  ],
-  "count": 0
-}
-```
-
-### WebSocket Endpoint
-
-#### `WS /ws`
-Real-time event streaming.
-
-**Connection**: `ws://localhost:8000/ws`
-
-**Messages**: Server broadcasts new events to all connected clients:
-```json
-{
-  "id": "uuid",
-  "transcript": "string",
-  "type": "string",
-  "severity": 1-10,
-  "assistant_reply": "string",
-  "timestamp": "ISO datetime"
-}
-```
-
----
-
-## 🔌 Future Integrations
-
-### ElevenLabs Speech-to-Text
-**File**: `backend/services/mock_stt.py`
-
-Replace the `mock_stt()` function with ElevenLabs API:
-```python
-import requests
-
-def elevenlabs_stt(audio_data):
-    # Integrate ElevenLabs STT API
-    # Return transcript string
-    pass
-```
-
-### Google Gemini API Classifier
-**File**: `backend/services/mock_classifier.py`
-
-Replace the `mock_classifier()` function with Gemini API:
-```python
-import google.generativeai as genai
-
-def gemini_classifier(transcript):
-    # Integrate Gemini API for classification
-    # Return {type, severity, assistant_reply}
-    pass
-```
-
-### Firestore Database
-**File**: `backend/services/event_store.py`
-
-Replace the in-memory EventStore with Firestore:
-```python
-from google.cloud import firestore
-
-class FirestoreEventStore:
-    def __init__(self):
-        self.db = firestore.Client()
-    
-    def add_event(self, event):
-        self.db.collection('events').add(event)
-    
-    def get_events(self, limit=50):
-        return self.db.collection('events').order_by('timestamp', direction=firestore.Query.DESCENDING).limit(limit).get()
-```
-
----
-
-## 🎨 Design Features
-
-- **Professional/Medical Theme**: Clean whites, blues, trust-building colors
-- **Responsive Design**: Works on mobile, tablet, and desktop
-- **Real-time Updates**: WebSocket-powered live event feed
-- **Accessibility**: Proper ARIA labels and keyboard navigation
-- **Micro-interactions**: Smooth animations and transitions
-- **Toast Notifications**: User-friendly feedback messages
-
----
-
-## 🐛 Troubleshooting
-
-### Backend not starting
-```bash
-# Check logs
-tail -f backend.log
-
-# Restart backend
-pkill -f "uvicorn server:app"
-uvicorn server:app --host 0.0.0.0 --port 8000 --reload
-```
-
-### Frontend not loading
-```bash
-# Check if frontend is running
-ps aux | grep "yarn start"
-
-# Restart frontend
-cd frontend && yarn start
-```
-
-### WebSocket not connecting
-- Check that backend is running
-- Verify CORS settings in backend `.env`
-- Check browser console for WebSocket errors
-
-### Microphone not working
-- Ensure browser has microphone permissions
-- Use HTTPS (required for Web Audio API)
-- Check browser compatibility
-
----
-
-## 📝 Notes
-
-- This is a **mock version** ready for integration
-- All external API calls are currently simulated
-- Event storage is in-memory (resets on server restart)
-- WebSocket provides real-time updates across all connected clients
-- Mock functions simulate realistic emergency scenarios for demo purposes
-
----
-
-## 🔐 Security Considerations for Production
-
-When integrating real APIs:
-- Store API keys in environment variables
-- Implement authentication and authorization
-- Add rate limiting
-- Validate and sanitize all inputs
-- Use HTTPS everywhere
-- Implement proper error handling
-- Add logging and monitoring
-
----
-
-## 📄 License
-
-This project is built for demonstration and integration purposes.
-
----
-
-## 👨‍💻 Development
-
-For development with hot reload:
-- Backend: FastAPI with `uvicorn --reload`
-- Frontend: React with Vite dev server
-
-Both services auto-reload on file changes (except for `.env` and dependency changes).
-
----
-
-**Built with ❤️ for emergency response and safety**
+This project is proprietary and confidential.
