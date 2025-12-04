@@ -34,6 +34,11 @@ event_store.set_db(db)
 # Create the main app without a prefix
 app = FastAPI(title="Voice Emergency Assistant", description="Real-Time Voice Emergency Detection System")
 
+# Root health check for Render
+@app.get("/")
+async def health_check():
+    return {"status": "healthy", "service": "Voice Emergency Assistant"}
+
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
 
