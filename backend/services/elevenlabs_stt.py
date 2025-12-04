@@ -10,7 +10,7 @@ from typing import Optional
 logger = logging.getLogger(__name__)
 
 # ElevenLabs API configuration
-ELEVENLABS_API_KEY = "sk_35a27c6b3bb95ab198a7ca714c4a2bd0874703549acb512e"
+ELEVENLABS_API_KEY = os.environ.get("ELEVENLABS_API_KEY", "")
 ELEVENLABS_API_URL = "https://api.elevenlabs.io/v1"
 
 def get_scribe_token() -> Optional[str]:

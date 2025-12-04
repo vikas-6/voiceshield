@@ -7,7 +7,9 @@ from typing import Dict, Any
 logger = logging.getLogger(__name__)
 
 # Configure Gemini API
-GEMINI_API_KEY = "AIzaSyDhZ1AZixusqeFt4wRxkdEIxWnmQ43y5SM"
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+if not GEMINI_API_KEY:
+    raise ValueError("GEMINI_API_KEY environment variable is required")
 genai.configure(api_key=GEMINI_API_KEY)
 
 # Initialize the model with a supported model name

@@ -1,12 +1,13 @@
 """ElevenLabs Text-to-Speech Service Integration"""
 import logging
+import os
 from elevenlabs import ElevenLabs, play
 from typing import Optional, Iterator
 
 logger = logging.getLogger(__name__)
 
 # ElevenLabs API configuration
-ELEVENLABS_API_KEY = "sk_35a27c6b3bb95ab198a7ca714c4a2bd0874703549acb512e"
+ELEVENLABS_API_KEY = os.environ.get("ELEVENLABS_API_KEY", "")
 
 def elevenlabs_tts(text: str, voice_id: str = "JBFqnCBsd6RMkjVDRZzb", 
                   model_id: str = "eleven_multilingual_v2", 
