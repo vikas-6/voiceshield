@@ -1,156 +1,178 @@
-# Voice Emergency Assistant
+# 🛡️ VoiceShield AI
 
-A real-time voice emergency detection system that uses advanced voice processing to identify emergency situations and provide appropriate responses.
+> **Real-time voice-powered emergency detection and response system using AI**
 
-## Features
+[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![ElevenLabs](https://img.shields.io/badge/ElevenLabs-Voice_AI-blue)](https://elevenlabs.io)
+[![Google Gemini](https://img.shields.io/badge/Google-Gemini_AI-orange)](https://ai.google.dev)
 
-- Real-time voice recording and processing
-- Emergency classification based on keywords (Fire, Medical, Violence, Accident)
-- Text-to-speech response generation using ElevenLabs
-- Persistent event storage with MongoDB
-- Real-time event feed via WebSocket
-- Responsive web interface built with React
+VoiceShield is an intelligent emergency response assistant that listens to voice input, detects emergency situations in real-time, classifies them by type and severity, and provides immediate AI-generated guidance with voice responses.
 
-## Prerequisites
+![VoiceShield Demo](https://via.placeholder.com/800x400?text=VoiceShield+AI+Demo)
 
-- Python 3.8+
-- Node.js 14+
+## ✨ Features
+
+- 🎙️ **Real-time Voice Recording** - Browser-based microphone input
+- 🔊 **Speech-to-Text** - ElevenLabs Scribe V2 for accurate transcription
+- 🧠 **AI Emergency Classification** - Detects Fire, Medical, Violence, Accident emergencies
+- 🤖 **Intelligent Response** - Google Gemini AI generates contextual emergency guidance
+- 🔈 **Text-to-Speech** - ElevenLabs voices deliver natural audio responses
+- 📡 **Real-time Updates** - WebSocket-powered live event feed
+- 💾 **Persistent Storage** - MongoDB Atlas for event history
+
+## 🏗️ Architecture
+
+```
+┌─────────────────┐         ┌─────────────────┐         ┌─────────────────┐
+│   React Frontend │◀──────▶│  FastAPI Backend │◀──────▶│  MongoDB Atlas  │
+│   (Voice UI)     │   WS   │   (Processing)   │        │   (Storage)     │
+└─────────────────┘         └─────────────────┘         └─────────────────┘
+                                    │
+                    ┌───────────────┼───────────────┐
+                    ▼               ▼               ▼
+            ┌─────────────┐ ┌─────────────┐ ┌─────────────┐
+            │ ElevenLabs  │ │   Gemini    │ │ ElevenLabs  │
+            │    STT      │ │     AI      │ │    TTS      │
+            └─────────────┘ └─────────────┘ └─────────────┘
+```
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Python 3.11+
+- Node.js 18+
 - MongoDB Atlas account
 - ElevenLabs API key
-
-## Installation
+- Google Gemini API key
 
 ### Backend Setup
 
-1. Navigate to the backend directory:
-   ```bash
-   cd backend
-   ```
+```bash
+cd backend
 
-2. Install Python dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
+# Install dependencies
+pip install -r requirements.txt
 
-3. Configure environment variables in `.env`:
-   ```
-   MONGO_URL="your_mongodb_connection_string"
-   DB_NAME="voice_assistant_db"
-   CORS_ORIGINS="*"
-   ```
+# Create .env file
+cat > .env << EOF
+MONGO_URL=your_mongodb_connection_string
+DB_NAME=voice_assistant_db
+CORS_ORIGINS=*
+EOF
 
-4. Start the backend server:
-   ```bash
-   uvicorn server:app --host 0.0.0.0 --port 8000 --reload
-   ```
+# Run server
+uvicorn server:app --host 0.0.0.0 --port 8000 --reload
+```
 
 ### Frontend Setup
 
-1. Navigate to the frontend directory:
-   ```bash
-   cd frontend
-   ```
-
-2. Install Node dependencies:
-   ```bash
-   yarn install
-   ```
-
-3. Configure environment variables in `.env`:
-   ```
-   REACT_APP_BACKEND_URL=http://localhost:8000
-   ```
-
-4. Start the development server:
-   ```bash
-   yarn start
-   ```
-
-## Production Deployment
-
-Run the deployment script:
 ```bash
-./deploy.sh
+cd frontend
+
+# Install dependencies
+yarn install
+
+# Create .env file
+echo "REACT_APP_BACKEND_URL=http://localhost:8000" > .env
+
+# Run development server
+yarn start
 ```
 
-This will:
-- Install all dependencies
-- Build production versions of both frontend and backend
-- Start both services in the background
-- Log output to the `logs/` directory
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## Usage
+## 🎯 How It Works
 
-1. Open your browser and navigate to `http://localhost:3000`
-2. Click the microphone button to start recording
-3. Speak an emergency phrase (e.g., "There's a fire in the building")
-4. View the classified emergency and AI response
-5. Monitor real-time events in the event feed
+1. **User speaks** into the microphone
+2. **ElevenLabs STT** transcribes speech to text
+3. **Keyword classifier** detects emergency type:
+   - 🔥 **FIRE** - fire, smoke, burning, flames
+   - 🏥 **MEDICAL** - hurt, injured, pain, unconscious
+   - ⚠️ **VIOLENCE** - attack, threat, weapon, danger
+   - 🚗 **ACCIDENT** - crash, collision, vehicle
+   - ✅ **NORMAL** - no emergency detected
+4. **Gemini AI** generates appropriate emergency response
+5. **ElevenLabs TTS** converts response to speech
+6. **WebSocket** broadcasts event to all connected clients
 
-## API Endpoints
-
-### Voice Processing
-- `POST /api/voice` - Process voice recording
-  - Form data: `audio` (webm audio file)
-  - Returns: Emergency event object
-
-### Events
-- `GET /api/events` - Get recent emergency events
-  - Query param: `limit` (default: 50)
-  - Returns: List of events
-
-### Status
-- `GET /api/status` - Get system status checks
-- `POST /api/status` - Create new status check
-
-### WebSocket
-- `WS /ws` - Real-time event streaming
-
-## Architecture
+## 📁 Project Structure
 
 ```
-┌─────────────┐    HTTP    ┌──────────────┐
-│   React     │ ──────────▶│   FastAPI    │
-│  Frontend   │            │   Backend    │
-└─────────────┘            └──────────────┘
-                                │
-                           ┌────▼────┐
-                           │ MongoDB │
-                           │   Atlas │
-                           └─────────┘
+voiceshield/
+├── backend/
+│   ├── server.py              # FastAPI application
+│   ├── requirements.txt       # Python dependencies
+│   ├── routes/
+│   │   └── voice.py           # Voice processing endpoints
+│   ├── services/
+│   │   ├── complete_flow.py   # Main processing pipeline
+│   │   ├── elevenlabs_stt.py  # Speech-to-text service
+│   │   ├── elevenlabs_tts.py  # Text-to-speech service
+│   │   ├── gemini_response.py # AI response generation
+│   │   └── event_store.py     # MongoDB operations
+│   └── websocket/
+│       └── ws_manager.py      # WebSocket management
+├── frontend/
+│   ├── src/
+│   │   ├── components/        # React components
+│   │   ├── pages/             # Page components
+│   │   └── services/          # API services
+│   └── package.json
+├── LICENSE
+└── README.md
 ```
 
-## Services
+## 🔌 API Endpoints
 
-- **ElevenLabs STT**: Speech-to-text conversion with fallback to mock STT
-- **Keyword Classifier**: Classifies emergencies based on transcript keywords
-- **ElevenLabs TTS**: Text-to-speech response generation
-- **MongoDB Event Store**: Persistent storage of emergency events
-- **WebSocket Manager**: Real-time event broadcasting
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/voice` | Process voice recording |
+| `GET` | `/api/events` | Get recent events |
+| `GET` | `/api/audio/{id}` | Get audio response |
+| `WS` | `/ws` | Real-time event stream |
 
-## Development
+## 🛠️ Tech Stack
 
-### Backend Structure
+### Backend
+- **FastAPI** - Modern Python web framework
+- **ElevenLabs** - Voice AI (STT + TTS)
+- **Google Gemini** - AI response generation
+- **MongoDB** - NoSQL database
+- **WebSockets** - Real-time communication
+
+### Frontend
+- **React 19** - UI framework
+- **TailwindCSS** - Styling
+- **Radix UI** - Accessible components
+- **Axios** - HTTP client
+
+## 🔒 Environment Variables
+
+### Backend (.env)
 ```
-backend/
-├── routes/          # API route handlers
-├── services/        # Business logic and external services
-├── websocket/       # WebSocket connection management
-├── server.py        # Main application entry point
-└── requirements.txt # Python dependencies
+MONGO_URL=mongodb+srv://...
+DB_NAME=voice_assistant_db
+CORS_ORIGINS=*
 ```
 
-### Frontend Structure
+### Frontend (.env)
 ```
-frontend/
-├── src/
-│   ├── components/  # React UI components
-│   ├── pages/       # Page components
-│   ├── services/    # API service clients
-│   └── App.js       # Main application component
-└── package.json     # Node dependencies
+REACT_APP_BACKEND_URL=http://localhost:8000
 ```
 
-## License
+## 📄 License
 
-This project is proprietary and confidential.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- [ElevenLabs](https://elevenlabs.io) - Voice AI platform
+- [Google AI](https://ai.google.dev) - Gemini API
+- [MongoDB](https://mongodb.com) - Database
+
+---
+
+<p align="center">
+  Made with ❤️ by <a href="https://github.com/vikas-6">Vikas Kumar</a>
+</p>
