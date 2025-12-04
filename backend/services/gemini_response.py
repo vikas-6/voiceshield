@@ -6,25 +6,37 @@ from typing import Dict, Any
 
 logger = logging.getLogger(__name__)
 
-# Configure Gemini API
+# Configure Gemini API - lazy initialization to prevent startup crashes
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
-if not GEMINI_API_KEY:
-    raise ValueError("GEMINI_API_KEY environment variable is required")
-genai.configure(api_key=GEMINI_API_KEY)
+_model = None
+_initialized = False
 
-# Initialize the model with a supported model name
-try:
-    model = genai.GenerativeModel('gemini-2.0-flash')
-    logger.info("Successfully initialized Gemini model: gemini-2.0-flash")
-except Exception as e:
-    logger.error(f"Failed to initialize primary model: {e}")
-    # Fallback to another model
+def get_model():
+    """Lazy initialization of Gemini model to prevent startup crashes"""
+    global _model, _initialized
+    
+    if _initialized:
+        return _model
+    
+    if not GEMINI_API_KEY:
+        logger.error("GEMINI_API_KEY environment variable is not set")
+        raise ValueError("GEMINI_API_KEY environment variable is required")
+    
     try:
-        model = genai.GenerativeModel('gemini-1.5-pro')
-        logger.info("Successfully initialized fallback model: gemini-1.5-pro")
-    except Exception as e2:
-        logger.error(f"Failed to initialize fallback model: {e2}")
-        model = None
+        genai.configure(api_key=GEMINI_API_KEY)
+        _model = genai.GenerativeModel('gemini-2.0-flash')
+        logger.info("Successfully initialized Gemini model: gemini-2.0-flash")
+    except Exception as e:
+        logger.error(f"Failed to initialize primary model: {e}")
+        try:
+            _model = genai.GenerativeModel('gemini-1.5-pro')
+            logger.info("Successfully initialized fallback model: gemini-1.5-pro")
+        except Exception as e2:
+            logger.error(f"Failed to initialize fallback model: {e2}")
+            _model = None
+    
+    _initialized = True
+    return _model
 
 def gemini_generate_response(emergency_type: str, severity: int, transcript: str) -> str:
     """Generate emergency response using Google Gemini API (no fallback)
@@ -37,6 +49,9 @@ def gemini_generate_response(emergency_type: str, severity: int, transcript: str
     Returns:
         str: Generated emergency response
     """
+    # Get model using lazy initialization
+    model = get_model()
+    
     # If model failed to initialize, raise exception
     if model is None:
         logger.error("Gemini model not available")

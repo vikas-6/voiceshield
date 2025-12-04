@@ -74,7 +74,8 @@ def elevenlabs_stt(audio_data: bytes) -> str:
             f"{ELEVENLABS_API_URL}/speech-to-text",
             headers=headers,
             files=files,
-            data=data
+            data=data,
+            timeout=30  # 30 second timeout to prevent hanging
         )
         
         # Check if request was successful
