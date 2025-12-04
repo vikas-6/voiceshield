@@ -18,10 +18,15 @@ from services.event_store import event_store
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-# MongoDB connection
-mongo_url = os.environ['MONGO_URL']
+# MongoDB connection - get from environment with proper error handling
+mongo_url = os.environ.get('MONGO_URL')
+db_name = os.environ.get('DB_NAME', 'voice_assistant_db')
+
+if not mongo_url:
+    raise ValueError("MONGO_URL environment variable is required. Set it in Render Dashboard > Environment.")
+
 client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+db = client[db_name]
 
 # Set the database connection for the event store
 event_store.set_db(db)
